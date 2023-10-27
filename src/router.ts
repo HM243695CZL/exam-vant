@@ -24,8 +24,31 @@ const routes = [
     meta: {
       title: '我的考试'
     }
+  },
+  {
+    name: 'wrong-book',
+    path: '/wrong-book',
+    component: () => import('@/view/wrong-book/index.vue'),
+    meta: {
+      title: '错题本'
+    }
+  },
+  {
+    name: 'review',
+    path: '/review',
+    component: () => import('@/view/review/index.vue'),
+    meta: {
+      title: '复习资料'
+    }
+  },
+  {
+    name: 'person',
+    path: '/person',
+    component: () => import('@/view/person/index.vue'),
+    meta: {
+      title: '个人中心'
+    }
   }
-
 ]
 
 const router = createRouter({

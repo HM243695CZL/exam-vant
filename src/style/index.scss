@@ -13,3 +13,8 @@ html, body{
 .h100{
   height: 100%;
 }
+.h-calc{
+  height: calc(100% - 140px);
+  padding: 20px;
+  overflow-y: scroll;
+}
