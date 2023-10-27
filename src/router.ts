@@ -55,18 +55,22 @@ const router = createRouter({
   routes,
   history: createWebHashHistory()
 })
-
+const whiteList = ['/review'];
 router.beforeEach((to, from, next) => {
   const title = to?.meta?.title
   if (title) {
     document.title = title as string
+  }
+  if (whiteList.includes(to.path)) {
+    next();
+    return;
   }
   const token = Session.get('token');
   if (to.path === '/login' && !token) {
     next();
   } else {
     if (!token) {
-      next(`/login`);
+      next(`/login?redirect=${to.path}&params=${JSON.stringify(to.query ? to.query : to.params)}`);
       Session.clear();
     } else if (token && to.path === '/login') {
       next('/my-exam');

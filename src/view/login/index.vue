@@ -9,8 +9,8 @@
 
   const state = reactive({
     ruleForm: {
-      username: '',
-      password: '',
+      username: '黄学生',
+      password: '123456',
     }
   });
   const clickLogin = () => {
