@@ -103,7 +103,7 @@ const showOriginImg = (data: ReviewItem) => {
 };
 const clickDirectory = (data: string, index: number) => {
   listEleRef.value.scroll({
-    top: state.topDataList[index],
+    top: state.topDataList[index] - 10,
     behavior: 'smooth'
   });
 }
