@@ -1,6 +1,7 @@
 <script setup lang='ts'>
 import HlTabBer from '@/components/HlTabbar/index.vue';
-import { onMounted, reactive, ref } from 'vue';
+import { nextTick, onMounted, reactive, ref } from 'vue';
+import { useRect } from '@vant/use';
 import { getReviewPageApi, getReviewTypeListApi } from '@/api/review';
 import { getAction, postAction } from '@/api/common';
 import { AxiosResponse } from 'axios';
@@ -15,6 +16,7 @@ type ReviewItem = {
 }
 
 const listEleRef = ref();
+const listItemEleRef = ref();
 const state = reactive({
   chapterName: '',
   reviewType: '',
@@ -27,7 +29,10 @@ const state = reactive({
     pageSize: 3
   },
   showImgDialog: false,
-  viewImgList: [] as Array<string>
+  viewImgList: [] as Array<string>,
+  directoryList: [] as any,
+  showDirectory: false,
+  topDataList: [] as Array<number>
 });
 const getReviewTypeList = () => {
   getAction(getReviewTypeListApi, '').then((res: AxiosResponse) => {
@@ -59,8 +64,25 @@ const getReviewList = () => {
           behavior: 'smooth'
         });
       }
+      state.directoryList = [];
+      res.data.list.map((item: ReviewItem) => {
+        // 获取h2标签,并且添加到目录中
+        const h2Name = item.content.match(/<h2.*?>(.*?)<\/h2>/);
+        if (h2Name) {
+          state.directoryList.push(h2Name[1]);
+        }
+      });
       state.dataList = res.data.list;
       state.pageInfo.totalRecords = res.data.total;
+      nextTick(() => {
+        state.topDataList = [];
+        if (listItemEleRef.value) {
+          listItemEleRef.value.map((item: any) => {
+            const rect = useRect(item);
+            state.topDataList.push(rect.top);
+          })
+        }
+      })
     }
   });
 }
@@ -79,6 +101,12 @@ const showOriginImg = (data: ReviewItem) => {
   state.viewImgList = data.pictureUrl.split(',');
   state.showImgDialog = true;
 };
+const clickDirectory = (data: string, index: number) => {
+  listEleRef.value.scroll({
+    top: state.topDataList[index],
+    behavior: 'smooth'
+  });
+}
 onMounted(() => {
   getReviewTypeList();
   getReviewList();
@@ -107,17 +135,26 @@ onMounted(() => {
     </van-popup>
     <div ref='listEleRef' :class='["list", state.dataList.length ? "" : "no-page"]'>
       <div class='list-item' v-if='state.dataList.length'>
-        <div class='item' v-for='item in state.dataList' :key='item.id'>
+        <div class='item' v-for='item in state.dataList' :key='item.id' ref='listItemEleRef'>
           <div class='title'>{{item.reviewTypeName}}</div>
           <div class='content' v-html='item.content'></div>
           <div class='img-box'>
             <div class='show-origin-img' @click='showOriginImg(item)'>查看原图</div>
           </div>
         </div>
+        <div :class='["directory-list", state.showDirectory ? "show-directory" : ""]'>
+          <div class='direct-item' v-for='(item, index) in state.directoryList' :key='item' @click='clickDirectory(item, index)'>
+            {{item.slice(0, 4)}}
+          </div>
+        </div>
       </div>
       <NoData v-else />
       <van-back-top right='10' bottom='35%' />
     </div>
+    <van-icon class='eye-icon'
+              size='25'
+              :name="state.showDirectory ? 'eye-o' : 'closed-eye'"
+              @click='state.showDirectory = !state.showDirectory' />
     <van-dialog width='100%' v-model:show="state.showImgDialog" title="查看图片"
                 confirmButtonText="关闭"
                 :closeOnClickOverlay='true'>
@@ -169,10 +206,40 @@ onMounted(() => {
         }
       }
     }
+    .directory-list{
+      position: fixed;
+      left: -20%;
+      top: 20%;
+      background: #fff;
+      box-shadow: 0 0 10px #ccc;
+      &.show-directory{
+        left: 0;
+        animation: showDirectory 1s;
+      }
+      @keyframes showDirectory {
+        0%{
+          left: -20%;
+        }
+        100%{
+          left: 0;
+        }
+      }
+      .direct-item{
+        padding: 10px;
+        &.active{
+          color: #126ac6;
+        }
+      }
+    }
   }
   .view-img-box{
     height: 60vh;
     overflow: scroll;
+  }
+  .eye-icon{
+    position: fixed;
+    top: 30%;
+    right: 20px;
   }
   .no-page{
     height: calc(100% - 128px);
