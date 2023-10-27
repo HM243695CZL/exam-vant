@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { Session } from '@/utils/storage';
 
 const routes = [
   {
@@ -6,6 +7,14 @@ const routes = [
     path: '/:path(.*)+',
     redirect: {
       name: 'my-exam'
+    }
+  },
+  {
+    name: 'login',
+    path: '/login',
+    component: () => import('@/view/login/index.vue'),
+    meta: {
+      title: '登录'
     }
   },
   {
@@ -29,7 +38,19 @@ router.beforeEach((to, from, next) => {
   if (title) {
     document.title = title as string
   }
-  next()
+  const token = Session.get('token');
+  if (to.path === '/login' && !token) {
+    next();
+  } else {
+    if (!token) {
+      next(`/login`);
+      Session.clear();
+    } else if (token && to.path === '/login') {
+      next('/my-exam');
+    } else {
+      next();
+    }
+  }
 })
 
 export default router
