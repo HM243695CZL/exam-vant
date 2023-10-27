@@ -26,7 +26,8 @@ const state = reactive({
     ...new PageEntity(),
     pageSize: 3
   },
-  showImg: false
+  showImgDialog: false,
+  viewImgList: [] as Array<string>
 });
 const getReviewTypeList = () => {
   getAction(getReviewTypeListApi, '').then((res: AxiosResponse) => {
@@ -66,12 +67,17 @@ const getReviewList = () => {
 const onFinish = (data: any) => {
   state.chapterName = data.selectedOptions.map((option: any) => option.name).join('/')
   state.reviewType = data.value;
+  state.pageInfo.pageIndex = 1;
   getReviewList();
   state.showCascader = false;
 };
 const changePage = (index: number) => {
   state.pageInfo.pageIndex = index;
   getReviewList();
+};
+const showOriginImg = (data: ReviewItem) => {
+  state.viewImgList = data.pictureUrl.split(',');
+  state.showImgDialog = true;
 };
 onMounted(() => {
   getReviewTypeList();
@@ -104,15 +110,21 @@ onMounted(() => {
         <div class='item' v-for='item in state.dataList' :key='item.id'>
           <div class='title'>{{item.reviewTypeName}}</div>
           <div class='content' v-html='item.content'></div>
+          <div class='img-box'>
+            <div class='show-origin-img' @click='showOriginImg(item)'>查看原图</div>
+          </div>
         </div>
       </div>
       <NoData v-else />
       <van-back-top right='10' bottom='35%' />
     </div>
-    <van-icon class='eye-icon'
-              size='25'
-              :name="state.showImg ? 'eye-o' : 'closed-eye'"
-              @click='state.showImg = !state.showImg' />
+    <van-dialog width='100%' v-model:show="state.showImgDialog" title="查看图片"
+                confirmButtonText="关闭"
+                :closeOnClickOverlay='true'>
+      <div class='view-img-box'>
+        <van-image v-for='item in state.viewImgList' :key='item' :src='item' />
+      </div>
+    </van-dialog>
     <div class='page-box' v-if='state.dataList.length'>
       <van-pagination
         @change='changePage'
@@ -145,16 +157,25 @@ onMounted(() => {
           background: #ddd;
           padding: 10px;
         }
+        .img-box{
+          .show-origin-img{
+            color: #f40;
+            margin-bottom: 20px;
+          }
+          .van-image{
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+          }
+        }
       }
     }
   }
+  .view-img-box{
+    height: 60vh;
+    overflow: scroll;
+  }
   .no-page{
     height: calc(100% - 128px);
-  }
-  .eye-icon{
-    position: fixed;
-    top: 50%;
-    right: 20px;
   }
   .page-box{
     position: fixed;
