@@ -1,6 +1,6 @@
 <script setup lang='ts'>
 import HlTabBer from '@/components/HlTabbar/index.vue';
-import { nextTick, onMounted, reactive, ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useRect } from '@vant/use';
 import { getReviewPageApi, getReviewTypeListApi } from '@/api/review';
 import { getAction, postAction } from '@/api/common';
@@ -33,7 +33,9 @@ const state = reactive({
   viewImgList: [] as Array<string>,
   directoryList: [] as any,
   showDirectory: false,
-  topDataList: [] as Array<number>
+  topDataList: [] as Array<number>,
+  voiceMsg: null as any,
+  synth: null as any,
 });
 const getReviewTypeList = () => {
   getAction(getReviewTypeListApi, '').then((res: AxiosResponse) => {
@@ -59,6 +61,7 @@ const getReviewList = () => {
     reviewType: state.reviewType
   }).then((res: AxiosResponse) => {
     if (res.status === StatusEnum.SUCCESS) {
+      cancelVoice();
       if (listEleRef) {
         listEleRef.value.scroll({
           top: 0,
@@ -102,15 +105,39 @@ const showOriginImg = (data: ReviewItem) => {
   state.viewImgList = data.pictureUrl.split(',');
   state.showImgDialog = true;
 };
-const clickDirectory = (data: string, index: number) => {
+const clickDirectory = (index: number) => {
   listEleRef.value.scroll({
     top: state.topDataList[index] - 10,
     behavior: 'smooth'
   });
-}
+};
+const speakVoice = (index: number) => {
+  cancelVoice();
+  state.voiceMsg = new SpeechSynthesisUtterance();
+  // 替换空格字符
+  state.voiceMsg.text = state.dataList[index].content.replace(/&nbsp;/g, ' ');
+  state.voiceMsg.lang = 'zh-Cn';
+  state.voiceMsg.rate = 1.5;
+  state.voiceMsg.pitch = 1;
+  state.synth = window.speechSynthesis;
+  state.synth.speak(state.voiceMsg);
+};
+const cancelVoice = () => {
+  if (state.synth) {
+    state.synth.cancel(state.voiceMsg);
+  }
+};
+watch(() => state.showDirectory, value => {
+  if (!value) {
+    cancelVoice();
+  }
+})
 onMounted(() => {
   getReviewTypeList();
   getReviewList();
+});
+onUnmounted(() => {
+  cancelVoice();
 });
 </script>
 
@@ -144,8 +171,9 @@ onMounted(() => {
           </div>
         </div>
         <div :class='["directory-list", state.showDirectory ? "show-directory" : ""]'>
-          <div class='direct-item' v-for='(item, index) in state.directoryList' :key='item' @click='clickDirectory(item, index)'>
+          <div class='direct-item' v-for='(item, index) in state.directoryList' :key='item' @click='clickDirectory(index)'>
             {{item.slice(0, 4)}}
+            <van-icon name='volume-o' @click='speakVoice(index)' />
           </div>
         </div>
       </div>
