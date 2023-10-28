@@ -17,6 +17,7 @@ type ReviewItem = {
 
 const listEleRef = ref();
 const listItemEleRef = ref();
+const pageBoxRef = ref();
 const state = reactive({
   chapterName: '',
   reviewType: '',
@@ -114,7 +115,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class='review-container h100 h-calc'>
+  <div class='review-container'>
     <van-field
       v-model="state.chapterName"
       is-link
@@ -162,7 +163,7 @@ onMounted(() => {
         <van-image v-for='item in state.viewImgList' :key='item' :src='item' />
       </div>
     </van-dialog>
-    <div class='page-box' v-if='state.dataList.length'>
+    <div class='page-box' v-if='state.dataList.length' ref='pageBoxRef'>
       <van-pagination
         @change='changePage'
         v-model="state.pageInfo.pageIndex"
@@ -175,8 +176,10 @@ onMounted(() => {
 
 <style scoped lang='scss'>
 .review-container{
+  height: calc(100% - 50PX);
+  overflow: hidden;
   .list{
-    height: calc(100% - 208px);
+    height: calc(100% - 84PX);
     overflow-y: scroll;
     background: #fff;
     padding: 20px;
@@ -242,11 +245,11 @@ onMounted(() => {
     right: 20px;
   }
   .no-page{
-    height: calc(100% - 128px);
+    height: 100%;
   }
   .page-box{
     position: fixed;
-    bottom: 100px;
+    bottom: 50PX;
     left: 0;
     right: 0;
     background: #fff;
