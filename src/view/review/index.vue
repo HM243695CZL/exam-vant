@@ -120,7 +120,7 @@ const speakVoice = (index: number) => {
   cancelVoice();
   state.voiceMsg = new SpeechSynthesisUtterance();
   // 替换空格字符
-  state.voiceMsg.text = state.dataList[index].content.replace(/&nbsp;/g, ' ');
+  state.voiceMsg.text = state.dataList[index].content.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ')
   state.voiceMsg.lang = 'zh-Cn';
   state.voiceMsg.rate = 1.5;
   state.voiceMsg.pitch = 1;
