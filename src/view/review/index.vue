@@ -81,13 +81,15 @@ const getReviewList = () => {
       nextTick(() => {
         state.topDataList = [];
         if (listItemEleRef.value) {
-          const topArr = [] as Array<number>;
-          listItemEleRef.value.map((item: any) => {
-            const rect = useRect(item);
-            topArr.push(rect.top);
-          });
-          // 升序排列
-          state.topDataList = topArr.sort((a, b) => a - b);
+          setTimeout(() => {
+            const topArr = [] as Array<number>;
+            listItemEleRef.value.map((item: any) => {
+              const rect = useRect(item);
+              topArr.push(rect.top);
+            });
+            // 升序排列
+            state.topDataList = topArr.sort((a, b) => a - b);
+          }, 2000)
         }
       })
     }
@@ -109,7 +111,6 @@ const showOriginImg = (data: ReviewItem) => {
   state.showImgDialog = true;
 };
 const clickDirectory = (index: number) => {
-  console.log(state.topDataList);
   listEleRef.value.scroll({
     top: state.topDataList[index] - 10,
     behavior: 'smooth'
