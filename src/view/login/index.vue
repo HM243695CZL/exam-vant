@@ -68,7 +68,7 @@
 <style scoped lang='scss'>
 .login-container{
   padding: 20px;
-  margin-top: 200px;
+  height: calc(100vh - 40px);
   .title{
     font-size: 50px;
     font-weight: bold;
