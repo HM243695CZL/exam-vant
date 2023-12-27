@@ -48,6 +48,14 @@ const routes = [
     meta: {
       title: '个人中心'
     }
+  },
+  {
+    name: 'view-paper',
+    path: '/view-paper/:id',
+    component: () => import('@/view/view-paper/index.vue'),
+    meta: {
+      title: '查看试卷'
+    }
   }
 ]
 

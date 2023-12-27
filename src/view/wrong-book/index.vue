@@ -88,7 +88,7 @@ onMounted(() => {
         padding: 20px;
         line-height: 1.8;
         position: relative;
-        border-bottom: 1px dashed #ccc;
+        margin-bottom: 10px;
         .q-name{
           text-indent: 1em;
         }
