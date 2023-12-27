@@ -56,6 +56,14 @@ const routes = [
     meta: {
       title: '查看试卷'
     }
+  },
+  {
+    name: 'examining',
+    path: '/examining/:id',
+    component: () => import('@/view/examining/index.vue'),
+    meta: {
+      title: '正在考试'
+    }
   }
 ]
 

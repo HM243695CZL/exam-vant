@@ -8,7 +8,7 @@ import HlTabBer from '@/components/HlTabbar/index.vue';
 import { StatusEnum } from '@/common/status.enum';
 import { useRouter } from 'vue-router';
 
-type Question = {
+type Paper = {
   id: string;
   name: string;
   questionInfo: string;
@@ -18,7 +18,7 @@ type Question = {
 }
 const router = useRouter();
 const state = reactive({
-  examList: [] as Array<Question>,
+  examList: [] as Array<Paper>,
   pageInfo: new PageEntity()
 })
 const getMyExamList = () => {
@@ -29,8 +29,11 @@ const getMyExamList = () => {
     }
   })
 };
-const clickViewPaper = (item: Question) => {
+const clickViewPaper = (item: Paper) => {
   router.push('/view-paper/' + item.id);
+};
+const clickExamining = (item: Paper) => {
+  router.push('/examining/' + item.id);
 };
 onMounted(() => {
   getMyExamList();
@@ -55,7 +58,7 @@ onMounted(() => {
         <div class='score'>
           <span>总分：{{item.score}}</span>
           <van-button v-if='item.examScore !== null' size='small' @click='clickViewPaper(item)'>查看试卷</van-button>
-          <van-button v-else type='primary' size='small'>开始考试</van-button>
+          <van-button v-else type='primary' size='small' @click='clickExamining(item)'>开始考试</van-button>
         </div>
       </div>
       <van-pagination
