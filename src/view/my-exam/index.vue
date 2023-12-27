@@ -34,7 +34,7 @@ onMounted(() => {
 
 <template>
   <div class='my-exam-container h100 h-calc'>
-    <div class='list'>
+    <div class='list' v-if='state.examList.length'>
       <div class='item' v-for='item in state.examList' :key='item.id'>
         <div class='title'>
           <div class='name'>{{item.name}}</div>
@@ -49,7 +49,14 @@ onMounted(() => {
           <van-button v-else type='primary' size='mini'>开始考试</van-button>
         </div>
       </div>
+      <van-pagination
+        v-model="state.pageInfo.pageIndex"
+        :total-items="state.pageInfo.totalRecords"
+        :show-page-size="3"
+        force-ellipses
+      />
     </div>
+    <NoData v-else />
     <HlTabBer />
   </div>
 </template>
