@@ -6,8 +6,9 @@ import { AxiosResponse } from 'axios';
 import { getMyExamApi } from '@/api/paper';
 import HlTabBer from '@/components/HlTabbar/index.vue';
 import { StatusEnum } from '@/common/status.enum';
+import { useRouter } from 'vue-router';
 
-type Question = {
+type Paper = {
   id: string;
   name: string;
   questionInfo: string;
@@ -15,8 +16,9 @@ type Question = {
   score: string;
   examScore: string;
 }
+const router = useRouter();
 const state = reactive({
-  examList: [] as Array<Question>,
+  examList: [] as Array<Paper>,
   pageInfo: new PageEntity()
 })
 const getMyExamList = () => {
@@ -27,6 +29,12 @@ const getMyExamList = () => {
     }
   })
 };
+const clickViewPaper = (item: Paper) => {
+  router.push('/view-paper/' + item.id);
+};
+const clickExamining = (item: Paper) => {
+  router.push('/examining/' + item.id);
+};
 onMounted(() => {
   getMyExamList();
 })
@@ -34,22 +42,33 @@ onMounted(() => {
 
 <template>
   <div class='my-exam-container h100 h-calc'>
-    <div class='list'>
+    <div class='list' v-if='state.examList.length'>
       <div class='item' v-for='item in state.examList' :key='item.id'>
         <div class='title'>
           <div class='name'>{{item.name}}</div>
-          <div class='q-info'>{{item.questionInfo}}</div>
         </div>
+        <div class='paper-info'>{{item.questionInfo}}</div>
         <div class='count'>
-          题数：{{item.questionCount}}
+          <span>题数：{{item.questionCount}}</span>
+          <div class='exam-score' v-if='item.examScore'>
+            {{item.examScore}}
+            <span class='unit'>分</span>
+          </div>
         </div>
         <div class='score'>
           <span>总分：{{item.score}}</span>
-          <van-button v-if='item.examScore' size='mini'>查看试卷</van-button>
-          <van-button v-else type='primary' size='mini'>开始考试</van-button>
+          <van-button v-if='item.examScore !== null' size='small' @click='clickViewPaper(item)'>查看试卷</van-button>
+          <van-button v-else type='primary' size='small' @click='clickExamining(item)'>开始考试</van-button>
         </div>
       </div>
+      <van-pagination
+        v-model="state.pageInfo.pageIndex"
+        :total-items="state.pageInfo.totalRecords"
+        :show-page-size="3"
+        force-ellipses
+      />
     </div>
+    <NoData v-else />
     <HlTabBer />
   </div>
 </template>
@@ -60,20 +79,32 @@ onMounted(() => {
       .item{
         background: #fff;
         padding: 20px;
+        margin-bottom: 10px;
         .title{
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 10px;
+          font-size: 40px;
           .name{
             font-weight: bold;
           }
-          .q-info{
-            color: #f40;
-          }
+        }
+        .paper-info{
+          margin-bottom: 15px;
         }
         .count{
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           margin-bottom: 10px;
+          .exam-score{
+            color: #f40;
+            font-size: 50px;
+            .unit{
+              font-size: 30px;
+            }
+          }
         }
         .score{
           display: flex;
