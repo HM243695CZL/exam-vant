@@ -1,10 +1,11 @@
 <script setup lang='ts'>
 
-import { onMounted, reactive } from 'vue';
-import { useRoute } from 'vue-router';
-import { getPaperPreviewApi } from '@/api/paper';
-import { getAction } from '@/api/common';
+import { computed, onMounted, reactive } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { getPaperPreviewApi, submitPaperApi } from '@/api/paper';
+import { getAction, postAction } from '@/api/common';
 import { StatusEnum } from '@/common/status.enum';
+import { showToast } from 'vant';
 
 type BigInfoType = {
   bigName: string;
@@ -18,16 +19,23 @@ type QuestionInfoType = {
   score: string;
   question: string;
   questionItemList: Array<any>;
+  questionList: Array<any>;
   type: number;
+}
+
+type PaperType = {
+  name: string;
+  questionCount: string;
 }
 
 
 const route = useRoute();
+const router = useRouter();
 const state = reactive({
   id: '',
   paperInfo: {
-    paper: {},
-    questionBigList: []
+    paper: {} as PaperType,
+    questionBigList: [] as Array<QuestionInfoType>,
   },
   itemIndex: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
   currentBigInfo: {} as BigInfoType,
@@ -62,6 +70,58 @@ const changeCheckAnswer = () => {
 const changeAnswer = (itemId: string) => {
   state.answerMap[state.currentQuestionInfo.id] = itemId;
 };
+const changeQuestion = (type: string) => {
+  if (type === 'prev') {
+    if (state.currentQuestionIndex === 0) {
+      if (state.currentBigIndex === 0) {
+        showToast('没有上一题了');
+        return false;
+      }
+      // 切换到上一个大题
+      state.currentBigInfo = state.paperInfo.questionBigList[state.currentBigIndex - 1] as any;
+      state.currentQuestionInfo = state.currentBigInfo.questionList[state.currentBigInfo.questionList.length - 1];
+      state.currentBigIndex -= 1;
+      state.currentQuestionIndex = state.currentBigInfo.questionList.length - 1;
+    } else {
+      state.currentQuestionInfo = state.paperInfo.questionBigList[state.currentBigIndex].questionList[state.currentQuestionIndex - 1];
+      state.currentQuestionIndex -= 1;
+    }
+  } else {
+    if (state.paperInfo.questionBigList[state.currentBigIndex].questionList.length - 1 <= state.currentQuestionIndex) {
+      if (state.currentBigIndex + 1 >= state.paperInfo.questionBigList.length) {
+        showToast('没有下一题了');
+        return false;
+      } else {
+        // 切换到下一个大题
+        state.currentBigInfo = state.paperInfo.questionBigList[state.currentBigIndex + 1] as any;
+        state.currentQuestionInfo = state.currentBigInfo.questionList[0];
+        state.currentBigIndex += 1;
+        state.currentQuestionIndex = 0;
+      }
+    } else {
+      state.currentQuestionInfo = state.paperInfo.questionBigList[state.currentBigIndex].questionList[state.currentQuestionIndex + 1];
+      state.currentQuestionIndex += 1;
+    }
+  }
+  state.chooseAnswer = '';
+  if (state.answerMap[state.currentQuestionInfo.id]) {
+    state.chooseAnswer = state.answerMap[state.currentQuestionInfo.id]
+  }
+};
+const clickSubmitPaper = () => {
+  postAction(submitPaperApi, {
+    paperId: state.id,
+    answerMap: state.answerMap
+  }).then((res: any) => {
+    if (res.status === StatusEnum.SUCCESS) {
+      showToast(res.message);
+      router.push('/my-exam');
+    }
+  })
+};
+const calcAnswerLen = computed(() => {
+  return Object.values(state.answerMap).filter(item => !!item).length;
+})
 onMounted(() => {
   state.id = route.params.id as string;
   getPaperInfo();
@@ -74,7 +134,7 @@ onMounted(() => {
       {{state.paperInfo.paper.name}}
     </div>
     <div class='process-bar'>
-      <van-progress :percentage="50" color='#ee0a24' />
+      <van-progress :percentage="Math.ceil((calcAnswerLen / ~~state.paperInfo.paper.questionCount) * 100) || 0" color='#ee0a24' />
     </div>
     <div class='question-area'>
       <div class='question-info'>
@@ -103,6 +163,11 @@ onMounted(() => {
             </van-radio-group>
           </div>
         </div>
+      </div>
+      <div class='btn-box'>
+        <van-button type='default' round @click='changeQuestion("prev")'>上一题</van-button>
+        <van-button type='default' round @click='changeQuestion("next")'>下一题</van-button>
+        <van-button type='primary' round @click='clickSubmitPaper'>交卷</van-button>
       </div>
     </div>
   </div>
@@ -166,7 +231,20 @@ onMounted(() => {
         .list-item-box{
           .van-checkbox, .van-radio{
             margin-bottom: 10px;
+            align-items: flex-start;
           }
+        }
+      }
+      .btn-box{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding-bottom: 20px;
+        padding-left: 20px;
+        background: #fff;
+        button{
+          margin-right: 20px;
         }
       }
     }
