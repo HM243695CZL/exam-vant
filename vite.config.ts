@@ -37,8 +37,4 @@ export default defineConfig({
       plugins: [loder_pxtovw]
     }
   },
-  server: {
-    port: 5173,
-    host: '192.168.1.8'
-  },
 });

@@ -29,6 +29,10 @@ const getMyExamList = () => {
     }
   })
 };
+const changePage = (pageIndex: number) => {
+  state.pageInfo.pageIndex = pageIndex;
+  getMyExamList();
+};
 const clickViewPaper = (item: Paper) => {
   router.push('/view-paper/' + item.id);
 };
@@ -65,6 +69,7 @@ onMounted(() => {
         v-model="state.pageInfo.pageIndex"
         :total-items="state.pageInfo.totalRecords"
         :show-page-size="3"
+        @change='changePage'
         force-ellipses
       />
     </div>
